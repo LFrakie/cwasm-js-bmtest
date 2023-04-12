@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+textarea {
+  width: 640px;
+}
+</style>
+<script src="fib.js"></script>
+<script id="js_code">
+function jsFib(n) {
+  if (n === 1) return 1;
+  if (n === 2) return 1;
+  return jsFib(n-1) + jsFib(n-2);
+}
+</script>
+
+
+<script id="ws_instantiate_code">
+var module, functions = {};
+fetch('fib.wasm')
+  .then(response => response.arrayBuffer())
+  .then(buffer => new Uint8Array(buffer))
+  .then(binary => {
+    var moduleArgs = {
+      wasmBinary: binary,
+      onRuntimeInitialized: function () {
+        functions.fib =
+          module.cwrap('fib',
+                       'number',
+                       ['number']);
+        onReady();
+      }
+    };
+    module = Module(moduleArgs);
+  });
+
+</script>
+
+
+
+
+
+<script id="test_code">
+function start() {
+  document.getElementById('run_button').disabled = true;
+
+  var num = 0x1E; // exa 40 decimal 0x28  ... 0x1E =30 0x23 = 35 0x26 = 38
+  var loop = 100;
+
+
+
+  var jsPerformance = document.getElementById('js_performance');
+  var wsPerformance = document.getElementById('ws_performance');
+  var comparison = document.getElementById('comparison');
+
+  jsPerformance.innerText = '';
+  wsPerformance.innerText = '';
+  comparison.innerText = '';
+
+
+
+  function checkFunctionality(n) {
+
+    console.log('checkFunctionality js:' +jsFib(n) )
+    console.log('checkFunctionality ws:' +functions.fib(n) )
+
+    return jsFib(n) === functions.fib(n);
+  }
+
+
+
+  function run(func, n, loop) {
+    func(n); // warm-up
+ //    console.log("=========")
+ // console.log("Fun to run: "+ func.name)
+    var startTime = performance.now();
+    for (var i = 0; i < loop; i++) {
+      func(n);
+    }
+    var endTime = performance.now();
+
+
+    let resultbn = (endTime - startTime).toFixed(4)
+    // let resultbn = ((endTime - startTime) / loop).toFixed(4)
+    console.log("Time: "+ resultbn)
+
+
+    return resultbn;
+  }
+
+
+
+
+  // don't use Promise for the non Promise support browsers so far.
+  setTimeout(function () {
+    if (! checkFunctionality(num)) {
+      document.getElementById('message').innerText =
+       'Estas dos funciones no son iguales...';
+      document.getElementById('run_button').disabled = false;
+      return;
+    }
+
+
+    setTimeout(function () {
+
+      jsMS = run(jsFib, num, loop);
+      jsPerformance.innerText = jsMS;
+
+      setTimeout(function () {
+
+
+        wsMS = run(functions.fib, num, loop);
+        wsPerformance.innerText = wsMS;
+
+        comparison.innerText =
+          (Number(jsPerformance.innerText) /
+             Number(wsPerformance.innerText)).toFixed(4);
+          pushData()
+        document.getElementById('message').innerText = 'Hecho';
+        document.getElementById('run_button').disabled = false;
+      });
+
+      document.getElementById('message').innerText = 'Running WebAssembly';
+      console.log("=========")
+      console.log("Running WebAssembly: ")
+
+    });
+
+
+
+
+
+    document.getElementById('message').innerText = 'Running JavaScript';
+    console.log("=========")
+    console.log("Running JavaScript: ")
+  });
+
+  document.getElementById('message').innerText = 'Comprobando Igualdad';
+}
+
+
+var jsMS;
+var wsMS;
+
+function pushData(){
+  console.log("=========")
+  console.log("Result de Js es: "+jsMS)
+  console.log("Result de Wasm es: "+wsMS)
+
+
+  var userAgent = navigator.userAgent;
+
+  // Encontrar el dispositivo
+  var device = "Dispositivo Desconocido";
+  if (userAgent.match(/iPhone/i)) device = "iPhone";
+  if (userAgent.match(/iPad/i)) device = "iPad";
+  if (userAgent.match(/Android/i)) device = "Android";
+  if (userAgent.match(/Windows Phone/i)) device = "WindowsPhone";
+  if (userAgent.match(/Win64/i)) device = "WinDesktop";
+  if (userAgent.match(/Win32/i)) device = "WinDesktop";
+
+  // console.log("Device: " + device);
+
+
+  // Encontrar el sistema operativo
+  var os = "OS Desconocido";
+  if (userAgent.indexOf("Win") != -1) os = "Windows";
+  if (userAgent.indexOf("Mac") != -1) os = "MacOS";
+  if (userAgent.indexOf("X11") != -1) os = "UNIX";
+  if (userAgent.indexOf("Linux") != -1) os = "Linux";
+
+  // console.log("OS: " + os);
+
+  var browserName;
+
+  // Identificar el navegador
+  if (userAgent.indexOf("Firefox") > -1) {
+      browserName = "Mozilla Firefox";
+  } else if (userAgent.indexOf("Opera") > -1 || userAgent.indexOf("OPR/") > -1) {
+      browserName = "Opera";
+  } else if (userAgent.indexOf("Trident") > -1) {
+      browserName = "Microsoft Internet Explorer";
+  } else if (userAgent.indexOf("Edge") > -1) {
+      browserName = "Microsoft Edge";
+  } else if (userAgent.indexOf("Chrome") > -1) {
+      browserName = "Google Chrome";
+  } else if (userAgent.indexOf("Safari") > -1) {
+      browserName = "Apple Safari";
+  } else {
+      browserName = "Desconocido";
+  }
+
+  // console.log("Browser: " + browserName);
+
+
+  console.log("=========")
+  console.log("To Send:")
+  let ts_algor = "fibonacci";
+  let ts_platform = navigator.platform;
+  let ts_device = device;
+  let ts_os = os;
+  let ts_browser = browserName;
+  let ts_jsbm = jsMS.replace('.', ',');
+  let ts_wsbm = wsMS.replace('.', ',');
+  let ts_alldata = navigator.userAgent.replace(/;/g, '');
+
+  let linkDataString = ts_algor +"-"+ ts_platform +"-"+ ts_device +"-"+ ts_os +"-"+ ts_browser +"-"+ ts_jsbm +"-"+ ts_wsbm;
+
+console.log(linkDataString)
+
+// console.log("ts_alldata adE: "+ts_alldata);
+// console.log("ts_alldata Post: "+ts_alldata.replace(';', '-'));
+
+
+fetch(`https://maker.ifttt.com/trigger/data-wasm-v1-uc8/with/key/d47g5fZHaqzGu_0dEX-kcW?value1=${linkDataString}&value2=${ts_alldata.replace(';', '-')}`)
+
+  .then(response => response.json())
+  .then(data => console.log(data))
+  .catch(error => console.error(error))
+
+
+// fetch(`https://maker.ifttt.com/trigger/data-wasm-v1-uc8/with/key/d47g5fZHaqzGu_0dEX-kcW?value1=${linkDataString}&value2=${ts_alldata}`)
+
+//   .then(response => response.json())
+//   .then(data => console.log(data))
+//   .catch(error => console.error(error))
+
+  
+}
+
+</script>
+
+
+
+
+
+
+
+
+<script>
+function onReady() {
+  document.getElementById('run_button').disabled = false;
+  document.getElementById('message').innerText = 'Fn - Fibonacci | Cargado';
+}
+
+function init() {
+  putCode('test_code_area', document.getElementById('test_code').text.trim());
+  putCode('js_code_area', document.getElementById('js_code').text.trim());
+
+  loadTextFile('fib.c', function(text) {
+    putCode('ws_code_area', text.trim());
+  });
+
+  loadTextFile('fib.sh', function(text) {
+    putCode('sh_code_area', text.trim());
+  });
+
+  putCode('ws_instantiate_code_area',
+          document.getElementById('ws_instantiate_code').text.trim());
+}
+
+function loadTextFile(url, callback) {
+  var request = new XMLHttpRequest();
+  request.open('GET', url);
+  request.responseType = 'text';
+  request.onload = function (event) {
+    callback(request.response);
+  };
+  request.send();
+}
+
+function putCode(textareaId, code) {
+  var textarea = document.getElementById(textareaId);
+  textarea.value = code;
+  textarea.setAttribute('rows', code.split('\n').length);
+}
+
+function switchDisplay(div) {
+  var textarea = div.getElementsByTagName('textarea')[0];
+  var p = div.getElementsByTagName('p')[0];
+  p.textContent = p.textContent.slice(2);
+  if (textarea.style.display === 'none') {
+    textarea.style.display = '';
+    p.textContent = '- ' + p.textContent;
+  } else {
+    textarea.style.display = 'none';
+    p.textContent = '+ ' + p.textContent;
+  }
+}
+</script>
+</head>
+<body onload="init() ">
+
+
+
+  <div>
+    <p>
+      <button class="btn btn-primary" id="run_button" onclick="start()" disabled>Iniciar</button>
+      <span id="message">Cargando WebAssembly</span>
+    </p>
+    <p>
+      Resultados (promedio [ms])<br />
+      JavaScript: <span id="js_performance"></span><br />
+      WebAssembly: <span id="ws_performance"></span><br />
+      JavaScript/WebAssembly: <span id="comparison"></span><br />
+    </p>
+  </div>
+  <div>
+    <!-- <p onclick="switchDisplay(this.parentNode)">+ Test code</p> -->
+    <p><textarea id="test_code_area" readonly style="display:none"></textarea></p>
+  </div>
+  <div>
+    <p onclick="switchDisplay(this.parentNode)">- JavaScript code</p>
+    <p><textarea id="js_code_area" readonly></textarea></p>
+  </div>
+  <div>
+    <p onclick="switchDisplay(this.parentNode)">- WebAssembly C code</p>
+    <p><textarea id="ws_code_area" readonly></textarea></p>
+  </div>
+  <div>
+    <!-- <p onclick="switchDisplay(this.parentNode)">+ WebAssembly Compile shell script</p> -->
+    <p><textarea id="sh_code_area" readonly style="display:none"></textarea></p>
+  </div>
+  <div>
+    <p onclick="switchDisplay(this.parentNode)">+ Codigo de Instanciación</p>
+    <p><textarea id="ws_instantiate_code_area" readonly style="display:none"></textarea></p>
+  </div>
+
+  <script>
+
+window.onload = function() {
+  setTimeout(function() {
+          start(); 
+          console.log("start just if this page is full charge")
+        }, 1000);
+
+  // Se ejecuta solo si se termino de cargar la pagina web 
+};
+
+
+
+  
+  </script>
+</body>
+</html>
