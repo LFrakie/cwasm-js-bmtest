@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/UAParser.js/1.0.35/ua-parser.min.js"></script>
 <style>
 textarea {
   width: 640px;
@@ -173,82 +174,171 @@ var wsMS;
 function pushData(){
 
 
-
-
   console.log("=========")
-  console.log("Result de Js es: "+jsMS)
-  console.log("Result de Wasm es: "+wsMS)
+  console.log("Push Data:")
 
 
-  var userAgent = navigator.userAgent;
 
-  // Encontrar el dispositivo
-  var device = "Dispositivo Desconocido";
-  if (userAgent.match(/iPhone/i)) device = "iPhone";
-  if (userAgent.match(/iPad/i)) device = "iPad";
-  if (userAgent.match(/Android/i)) device = "Android";
-  if (userAgent.match(/Windows Phone/i)) device = "WindowsPhone";
-  if (userAgent.match(/Win64/i)) device = "WinDesktop";
-  if (userAgent.match(/Win32/i)) device = "WinDesktop";
+  // Web Server Identifies
 
-  // console.log("Device: " + device);
+  let getHost = window.location.hostname;
+
+  if (getHost.match(/github/i)) webserv = "GHP";
+  if (getHost.match(/pages/i)) webserv = "CFP";
+  if (getHost.match(/netlify/i)) webserv = "NET";
+  if (getHost.match(/vercel/i)) webserv = "VER";
+
+  if (getHost.match(/127.0.0.1/i)) webserv = "127.0.0.1";
+  if (getHost.match(/localhost/i)) webserv = "localhost";
+
+  console.log("WebServer: "+ webserv)
 
 
-  // Encontrar el sistema operativo
-  var os = "OS Desconocido";
-  if (userAgent.indexOf("Win") != -1) os = "Windows";
-  if (userAgent.indexOf("Mac") != -1) os = "MacOS";
-  if (userAgent.indexOf("X11") != -1) os = "UNIX";
-  if (userAgent.indexOf("Linux") != -1) os = "Linux";
+  // Just pass it to `UAParser`
+  const parser = new UAParser();
 
-  // console.log("OS: " + os);
 
-  var browserName;
+// HTML RENDER ENGINE
+let getEngine = parser.getEngine().name;
+console.log("ENGINE: "+getEngine)
+// { name : "Blink", version : "110.0.5481.153" }
 
-  // Identificar el navegador
-  if (userAgent.indexOf("Firefox") > -1) {
-      browserName = "Mozilla Firefox";
-  } else if (userAgent.indexOf("Opera") > -1 || userAgent.indexOf("OPR/") > -1) {
-      browserName = "Opera";
-  } else if (userAgent.indexOf("Trident") > -1) {
-      browserName = "Microsoft Internet Explorer";
-  } else if (userAgent.indexOf("Edge") > -1) {
-      browserName = "Microsoft Edge";
-  } else if (userAgent.indexOf("Chrome") > -1) {
-      browserName = "Google Chrome";
-  } else if (userAgent.indexOf("Safari") > -1) {
-      browserName = "Apple Safari";
-  } else {
-      browserName = "Desconocido";
+
+
+
+
+// ALGORITMO
+// abajo en sen data
+console.log("Algor: Fibonacci");
+
+
+
+// DEVICE
+let getDevice = parser.getDevice();
+var dD_Type;
+var dD_Model;
+
+if (getDevice.type===undefined) {
+    verifyDesktop()
+} else {
+    console.log('D. TYPE: '+getDevice.type)
+    console.log('D. MODEL: '+getDevice.model)
+    // { type: '', vendor: '', model: '' }
+        dD_Type = getDevice.type;
+        dD_Model = getDevice.model;    
+}
+
+
+function verifyDesktop(){
+    if (parser.getOS().name=="Windows") {
+
+        console.log('D. TYPE: Pc')
+        console.log('D. MODEL: Generic')
+        dD_Type = "Pc";
+        dD_Model = "Generic";
+    }
+}
+
+
+
+
+// OS
+let getOs = parser.getOS().name;
+console.log("OS: "+getOs)
+// { name: '', version: '' }
+
+
+
+
+
+// BROWSER
+let getBrowser = parser.getBrowser().name;
+console.log("BROWSER: "+getBrowser)
+// { name: '', version: '', major: '' }
+
+
+
+
+
+  // CPU
+  let getCpu = parser.getCPU();
+  var dCpu;
+
+  if (getCpu.architecture===undefined) {
+    // Si es undefined
+      let altGetCpu = navigator.platform.replace(' ', '.')
+      console.log('CPU: '+altGetCpu)
+      dCpu = altGetCpu;
+  }else {
+    // No es undefined
+      console.log('CPU: '+getCpu.architecture)
+      // { architecture: '' }
+      dCpu = getCpu.architecture;
   }
 
-  // console.log("Browser: " + browserName);
+
+
+
+// LANG
+// abajo en sen data
+console.log("Lang: C");
+
+
+
+// JS-ms
+console.log("Js ms: "+jsMS)
+
+
+
+// WASM-ms
+console.log("Wasm ms: "+wsMS)
+
+
+  //  ALL DATA AGENT
+  let uA_alldata = navigator.userAgent.replace(/;/g, '');
+  console.log("UA-AllData: "+uA_alldata)
 
 
   console.log("=========")
-  console.log("To Send:")
+
+
+
+  
+
+  let ts_webserver = getHost;
+  let ts_engine = getEngine;
   let ts_algor = "fibonacci";
-  let ts_platform = navigator.platform;
-  let ts_device = device;
-  let ts_os = os;
-  let ts_browser = browserName;
+  let ts_D_model = dD_Type;
+  let ts_D_type = dD_Model;
+  let ts_os = getOs;
+  let ts_browser = getBrowser;
+  let ts_cpu = dCpu;
+  let ts_lang = "C";
+
   let ts_jsbm = jsMS.replace('.', ',');
   let ts_wsbm = wsMS.replace('.', ',');
-  let ts_alldata = navigator.userAgent.replace(/;/g, '');
 
-  let linkDataString = ts_algor +"-"+ ts_platform +"-"+ ts_device +"-"+ ts_os +"-"+ ts_browser +"-"+ ts_jsbm +"-"+ ts_wsbm;
+  let ts_alldata = uA_alldata;
+
+
+  let linkDataString = ts_webserver +"-"+ ts_engine +"-"+ ts_algor +"-"+ ts_D_model +"-"+ ts_D_type +"-"+ ts_os +"-"+ ts_browser +"-"+ ts_cpu +"-"+ ts_lang +"-"+ ts_jsbm +"-"+ ts_wsbm;
 
 console.log(linkDataString)
 
-// console.log("ts_alldata adE: "+ts_alldata);
-// console.log("ts_alldata Post: "+ts_alldata.replace(';', '-'));
 
 
-fetch(`https://maker.ifttt.com/trigger/data-wasm-v1-uc8/with/key/d47g5fZHaqzGu_0dEX-kcW?value1=${linkDataString}&value2=${ts_alldata.replace(';', '-')}`)
+
+fetch(`https://maker.ifttt.com/trigger/data-wasm-v1-uc8/with/key/d47g5fZHaqzGu_0dEX-kcW?value1=${linkDataString}&value2=${uA_alldata}`)
 
   .then(response => response.json())
   .then(data => console.log(data))
   .catch(error => console.error(error))
+
+
+
+
+
+
 
 
 // fetch(`https://maker.ifttt.com/trigger/data-wasm-v1-uc8/with/key/d47g5fZHaqzGu_0dEX-kcW?value1=${linkDataString}&value2=${ts_alldata}`)
