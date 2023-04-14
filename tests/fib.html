@@ -299,7 +299,13 @@ console.log("Wasm ms: "+wsMS)
   console.log("UA-AllData: "+uA_alldata)
 
 
+  //  DIVResults
+
+  let getdivresult = jsMS / wsMS;
+  let dDivresult = getdivresult.toFixed(3).toString().replace('.', ',');
+
   console.log("=========")
+
 
 
 
@@ -321,7 +327,15 @@ console.log("Wasm ms: "+wsMS)
   let ts_alldata = uA_alldata;
 
 
-  let linkDataString = ts_webserver +"*"+ ts_engine +"*"+ ts_algor +"*"+ ts_D_model +"*"+ ts_D_type +"*"+ ts_os +"*"+ ts_browser +"*"+ ts_cpu +"*"+ ts_lang +"*"+ ts_jsbm +"*"+ ts_wsbm;
+  let ts_diversults = dDivresult;
+
+  console.log("ts_diversults: "+ts_diversults)
+
+
+
+  let linkDataString = ts_webserver +"*"+ ts_engine +"*"+ ts_algor +"*"+ ts_D_model +"*"+ ts_D_type +"*"+ ts_os +"*"+ ts_browser +"*"+ ts_cpu +"*"+ ts_lang +"*"+ ts_jsbm +"*"+ ts_wsbm+"*"+ts_diversults;
+
+  
 
 console.log(linkDataString)
 
